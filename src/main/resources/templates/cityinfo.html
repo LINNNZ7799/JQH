@@ -1,0 +1,352 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <el-container style="height: 750px; border: 1px solid #eee">
+
+        <el-header style=" font-size: 12px;background-color: rgb(84, 88, 126);display: flex;justify-content: space-between">
+            <span style="font-size: xx-large;color: white;margin-top: 7px ">区域管理功能</span>
+            <!--            <el-dropdown>-->
+            <!--                <i class="el-icon-setting" style="margin-right: 15px"></i>-->
+            <!--                <el-dropdown-menu slot="dropdown">-->
+            <!--                    <el-dropdown-item>查看</el-dropdown-item>-->
+            <!--                    <el-dropdown-item>新增</el-dropdown-item>-->
+            <!--                    <el-dropdown-item>删除</el-dropdown-item>-->
+            <!--                </el-dropdown-menu>-->
+            <!--            </el-dropdown>-->
+            <el-button style="background-color:rgb(84, 88, 126);border-color: rgb(84, 88, 126);color: white " v-on:click="getCart">退出</el-button>
+        </el-header>
+
+        <el-container style="height: 700px;margin-top: 2px">
+            <el-aside width="200px" >
+                <el-menu style="background-color: rgb(84, 88, 126);height: 700px">
+
+
+                    <el-menu-item-group>
+                        <!--                        <template slot="title">分组一</template>-->
+                        <el-menu-item style="text-align: center;color: white;font-size: large;"><a href="/areaman" style="padding-bottom: 7px;border-bottom: 1px solid white;color: white;text-decoration:none;">区域管理</a></el-menu-item>
+                        <el-menu-item style="text-align: center;color: white;font-size: large;"><a href="/cityinfo" style="padding-bottom: 7px;border-bottom: 1px solid white;color: white;text-decoration:none;">城市信息</a></el-menu-item>
+                    </el-menu-item-group>
+
+
+                </el-menu>
+            </el-aside>
+
+            <el-container>
+
+                <el-header style="height: 20px;font-size: x-large;font-weight: bolder;background-color: white;height: auto"><span style="padding-bottom: 10px;border-bottom: 1px solid #000000">&nbsp;&nbsp;当前：</span></el-header>
+
+                <elel-container style="margin-top: 30px;margin-left: 10px;width: 97%; ">
+                    <el-form ref="form" :model="form2" label-width="80px" style="display: flex;justify-content: space-between;flex-wrap: wrap;" >
+
+
+                        <el-form-item>
+                            <el-button type="primary" @click="dialogVisible = true">添加</el-button>
+                            <!--   弹 窗    -->
+                            <el-dialog
+                                    title="添加"
+                                    :visible.sync="dialogVisible"
+                                    width="30%"
+                            >
+
+                                <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="100px" class="demo-dynamic">
+
+
+                                    <el-form-item
+                                            style="margin-bottom: 20px"
+                                            label="城市"
+                                            :rules="{ required: true, message: '请输入城市', trigger: 'blur' }"
+                                            prop="areacity">
+                                        <el-input v-model="dynamicValidateForm.areacity"></el-input>
+                                    </el-form-item>
+
+
+                                    <el-form-item >
+                                        <el-button type="primary" @click="submitForm('dynamicValidateForm')" style="margin-left: 170px">添加</el-button>
+<!--                                        <el-button @click="addDomain">新增地址</el-button>-->
+<!--                                        <el-button @click="resetForm('dynamicValidateForm')">重置</el-button>-->
+                                    </el-form-item>
+                                </el-form>
+                            </el-dialog>
+                            <el-button type="primary" @click="check">查看</el-button>
+                            <el-button type="primary" @click="check">编辑</el-button>
+                            <el-button type="primary" @click="getCart">删除</el-button>
+                        </el-form-item>
+
+                    </el-form>
+
+                </elel-container>
+
+
+                <el-main style="margin-top: 10px">
+
+                    <el-table :data="tableData" border style="width: 100%"  :cell-style="{'text-align':'center'}" :header-cell-style="{'text-align':'center'}">
+<!--                        <el-table-column prop="serial" label="序号" >-->
+<!--                        </el-table-column>-->
+                        <el-table-column  prop="id" label="序号" align="center">
+<!--                            <template slot-scope="scop">-->
+<!--                                {{scop.$index+1}}-->
+<!--                            </template>-->
+                        </el-table-column>
+                        <el-table-column prop="name" label="城市名称" >
+                        </el-table-column>
+
+                    </el-table>
+
+                    <el-pagination style="text-align: right;margin-top: 10px" background layout="prev, pager, next" :total="countPage" :page-size="pagesize" :current-page="currentPage" @current-change="handleCurrentChange"></el-pagination>
+                </el-main>
+
+            </el-container>
+        </el-container>
+    </el-container>
+
+
+</div>
+</body>
+
+<style>
+    .bt {
+        background-color: rgb(212, 211, 211);
+        margin-left: 20px;
+        font-weight: bolder;
+        width: 120px;
+        height: auto ;
+    }
+
+</style>
+
+<script>
+    window.onload=function() {
+        var vue = new Vue({
+            el: "#app",
+            data: {
+
+                sid:0,
+
+                currentPage:1, //初始页
+                pagesize: 5, //    每页的数据
+                countPage: 1,
+                pageover: 5,
+                userList: [],
+                dialogVisible: false,
+                form2: {
+                    areaname: '',
+                    areacity: '',
+                    address: '',
+                    newtime: '',
+                    date1: '',
+                    date2: '',
+                    date3: '',
+                    date4: '',
+                },
+                input: "lzlz",
+                item: {
+                    date: '2016-05-02',
+                    name: '王小虎',
+                    address: '上海市普陀区金沙江路 1519 弄'
+                },
+                tableDataAll: [
+                    {id: "Loading...", name: "Loading..."},
+                ],
+                tableData: [
+                    {id: "Loading...", name: "Loading..."},
+
+                ],
+                ruleForm: {
+                    name: '',
+                    region: '',
+
+                    delivery: false,
+                    type: [],
+                    resource: '',
+                    desc: ''
+                },
+                dynamicValidateForm: {
+
+                    areaname: '',
+                    areacity: '',
+                    domains: [{
+                        value: '',
+                    }],
+                },
+
+
+            },
+            methods: {
+                getCart: function () {
+                    console.log(vue.tableData);
+                    alert(vue.tableData);
+                },
+                seek: function () {
+                    // alert(vue.form2.date1+vue.form2.date2);
+                    // console.log(typeof vue.form2.date1)
+
+                    axios({
+                        method: "GET",
+                        url: "/seek",
+                        params: {
+                            areaname: vue.form2.areaname,
+                            areacity: vue.form2.areacity,
+                            address: vue.form2.address,
+                            data1: vue.form2.date1,
+                            data2: vue.form2.date2,
+                            data3: vue.form2.date3,
+                            data4: vue.form2.date4,
+                        },
+                        // data: this.form2
+                    })
+                        .then(function (value) {
+                            vue.currentPage = 1;
+                            var seekData = value.data;
+                            vue.tableDataAll = seekData;
+                            // console.log(vue.tableDataAll.slice(0,vue.pageover));
+                            vue.tableData = vue.tableDataAll.slice(0,vue.pageover);
+
+                            vue.countPage = seekData.length;
+                            // var seekData = value.data;
+                            // vue.tableData = seekData;
+                            // console.log(vue.tableData[0])
+                            // vue.countPage = seekData.length
+                            // alert(seekData.length)
+
+                        })
+                        .catch(function (reason) {
+                            alert(reason+"aaaaaaaa");
+                        });
+                },
+                handleCurrentChange: function (val) {
+                    vue.currentPage = val;
+
+
+                    var pagenext = (val-1)*vue.pagesize+5;
+                    // alert(pagenext)
+                    // alert(vue.tableDataAll.length)
+                    if (pagenext >= vue.tableDataAll.length){
+                        pagenext = vue.tableDataAll.length;
+                    }
+                    vue.tableData = vue.tableDataAll.slice((val-1)*vue.pagesize,pagenext);
+
+                },
+                getDataList: function () {
+                    axios({
+                        method: "GET",
+                        url: "/distinctcity",
+
+                    })
+                        .then(function (value) {
+                            console.log(vue.tableDataAll.slice(0,vue.pageover));
+                            var allcity = value.data;
+                            vue.tableDataAll = allcity;
+                            console.log(vue.tableDataAll.slice(0,vue.pageover));
+                            vue.tableData = vue.tableDataAll.slice(0,vue.pageover);
+                            // vue.getDataCount();
+
+                            vue.countPage = allcity.length;
+                            //    Math.ceil(allcity.length/5);
+
+
+                        })
+                        .catch(function (reason) {
+                            alert("aaaa"+reason)
+                        });
+                },
+
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+
+                            axios({
+                                method: "POST",
+                                url: "/addCity",
+                                params: {
+                                    areacity: this.dynamicValidateForm.areacity,
+
+                                },
+
+                            })
+                                .then(function (value) {
+                                    vue.currentPage = 1;
+                                    alert("添加成功")
+                                    console.log(value)
+                                    vue.getDataList();
+
+                                })
+                                .catch(function (reason) {
+                                    alert("不可重复添加")
+                                });
+                            this.dialogVisible = false;
+
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                },
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                },
+                removeDomain(item) {
+                    var index = this.dynamicValidateForm.domains.indexOf(item)
+                    if (index !== -1) {
+                        this.dynamicValidateForm.domains.splice(index, 1)
+                    }
+                },
+                addDomain() {
+                    this.dynamicValidateForm.domains.push({
+                        value: '',
+                        key: Date.now()
+                    });
+
+                    // alert(this.dynamicValidateForm.domains.length)
+                    // this.sid = this.sid+1;
+                    // alert(document.getElementById(this.sid).id)
+                    // alert(this.sid)
+                    console.log(this.dynamicValidateForm.domains)
+                    // document.getElementById(this.sid).onmousedown=function () {
+                    //     alert("鼠标离开")
+                    //
+                    // }
+
+                    ;
+                },
+                check() {
+                    this.getDataList();
+                },
+                // citymanage(){
+                //     axios({
+                //         method: "GET",
+                //         url: "/cityinfo",
+                //     })
+                //         .then(function (value) {
+                //
+                //         }).catch(function (reason) {
+                //     });}
+                // ,
+            },
+            mounted: function () {
+                this.getDataList();
+            }
+            // console.log
+            // mounted:function(){
+            //     return {
+            //         Main
+            //     }
+            // }
+        });
+// function getCart() {
+//     console.log("llinnnn")
+// }
+    }
+</script>
+</html>

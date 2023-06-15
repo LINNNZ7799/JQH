@@ -1,0 +1,474 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <el-container style="height: 750px; border: 1px solid #eee">
+
+        <el-header style=" font-size: 12px;background-color: rgb(84, 88, 126);display: flex;justify-content: space-between">
+            <span style="font-size: xx-large;color: white;margin-top: 7px ">区域管理功能</span>
+<!--            <el-dropdown>-->
+<!--                <i class="el-icon-setting" style="margin-right: 15px"></i>-->
+<!--                <el-dropdown-menu slot="dropdown">-->
+<!--                    <el-dropdown-item>查看</el-dropdown-item>-->
+<!--                    <el-dropdown-item>新增</el-dropdown-item>-->
+<!--                    <el-dropdown-item>删除</el-dropdown-item>-->
+<!--                </el-dropdown-menu>-->
+<!--            </el-dropdown>-->
+            <el-button style="background-color:rgb(84, 88, 126);border-color: rgb(84, 88, 126);color: white " v-on:click="getCart">退出</el-button>
+        </el-header>
+
+        <el-container style="height: 700px;margin-top: 2px">
+        <el-aside width="200px" >
+            <el-menu style="background-color: rgb(84, 88, 126);height: 700px">
+
+
+                    <el-menu-item-group>
+<!--                        <template slot="title">分组一</template>-->
+                        <el-menu-item style="text-align: center;color: white;font-size: large;"><a href="/areaman" style="padding-bottom: 7px;border-bottom: 1px solid white;color: white;text-decoration:none;">区域管理</a></el-menu-item>
+                        <el-menu-item style="text-align: center;color: white;font-size: large;"><a href="/cityinfo" style="padding-bottom: 7px;border-bottom: 1px solid white;color: white;text-decoration:none;">城市信息</a></el-menu-item>
+                    </el-menu-item-group>
+
+
+            </el-menu>
+        </el-aside>
+
+        <el-container>
+
+            <el-header style="height: 100px;font-size: x-large;font-weight: bolder;height: 150px">
+                <span style="padding-bottom: 10px;border-bottom: 1px solid #000000;">&nbsp;&nbsp;当前：</span><br>
+                <el-form ref="form" :model="form2" label-width="80px" style="display: flex;justify-content: space-between;flex-wrap: wrap;height: 100px;margin-top: 16px" >
+                <el-form-item label="区域名称:">
+                    <el-input v-model="form2.areaname" style="width: 160px;"></el-input>
+                </el-form-item>
+
+                <el-form-item label="区域城市:">
+                    <el-input v-model="form2.areacity" style="width: 160px;"></el-input>
+                </el-form-item>
+
+                <el-form-item label="地址:">
+                    <el-input v-model="form2.address" style="width: 160px;"></el-input>
+                </el-form-item>
+
+                <!--                    <el-form-item label="创建时间:">-->
+                <!--                        <el-input v-model="form.newtime" style="width: 300px;"></el-input>-->
+                <!--                    </el-form-item>-->
+
+                <el-form-item label="创建时间" >
+                    <el-col :span="4" >
+                        <el-form-item prop="date1" >
+                            <el-date-picker type="date" placeholder="选择日期" v-model="form2.date1" value-format="yyyy-MM-dd" style="width: 100%;"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col class="line" :span="1" style="text-align: center">-</el-col>
+                    <el-col :span="4">
+                        <el-form-item prop="date2">
+                            <el-time-picker placeholder="选择时间" v-model="form2.date2" value-format="HH-mm-ss" style="width: 100%;"></el-time-picker>
+                        </el-form-item>
+                    </el-col>
+
+                    <el-col class="line" :span="1" style="text-align: center">至</el-col>
+                    <el-col :span="4">
+                        <el-form-item prop="date3">
+                            <el-date-picker type="date" placeholder="选择日期" v-model="form2.date3" value-format="yyyy-MM-dd" style="width: 100%;"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col class="line" :span="1" style="text-align: center">-</el-col>
+                    <el-col :span="4">
+                        <el-form-item prop="date4">
+                            <el-time-picker placeholder="选择时间" v-model="form2.date4" value-format="HH-mm-ss" style="width: 100%;"></el-time-picker>
+                        </el-form-item>
+                    </el-col>
+
+                    <el-button type="primary" @click="seek" style="margin-left: 20px;">搜索</el-button>
+
+                </el-form-item>
+
+                <el-form-item style="height: 50px">
+                    <el-button type="primary" @click="dialogVisible = true">添加</el-button>
+                    <!--   弹 窗    -->
+                    <el-dialog
+                            title="添加"
+                            :visible.sync="dialogVisible"
+                            width="30%"
+                    >
+
+                        <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="100px" class="demo-dynamic">
+                            <el-form-item
+                                    style="margin-bottom: 20px"
+                                    label="区域名称"
+                                    :rules="{ required: true, message: '请输入区域名称', trigger: 'blur' }"
+                                    prop="areaname">
+                                <el-input v-model="dynamicValidateForm.areaname"></el-input>
+                            </el-form-item>
+
+                            <el-form-item
+                                    style="margin-bottom: 20px"
+                                    label="区域城市"
+                                    :rules="{ required: true, message: '请输入区域城市', trigger: 'blur' }"
+                                    prop="areacity">
+                                <el-input v-model="dynamicValidateForm.areacity"></el-input>
+                            </el-form-item>
+                            <el-form-item
+                                    v-for="(domain, index) in dynamicValidateForm.domains"
+                                    :label="'地址' + (index+1)"
+                                    :key="domain.key"
+                                    :prop="'domains.' + index + '.value'"
+                                    :rules="{ required: true, message: '地址不能为空', trigger: 'blur' }"
+                                    style="margin-bottom: 20px"
+                            >
+                                <el-input v-model="domain.value" style="margin-bottom: 5px;"></el-input><el-button @click.prevent="removeDomain(domain)" >删除</el-button>
+                            </el-form-item>
+
+                            <el-form-item>
+                                <el-button type="primary" @click="submitForm('dynamicValidateForm')">提交</el-button>
+                                <el-button @click="addDomain">新增地址</el-button>
+                                <el-button @click="resetForm('dynamicValidateForm')">重置</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-dialog>
+                    <el-button type="primary" @click="check">查看</el-button>
+                    <el-button type="primary" @click="citymanage">编辑</el-button>
+                    <el-button type="primary" @click="getCart">删除</el-button>
+                </el-form-item>
+
+
+            </el-form></el-header>
+
+
+
+<!--            <elel-container style="margin-top: 25px;margin-left: 50px;">-->
+<!--                <el-button class="bt" style="" v-on:click="getCart">添加</el-button>-->
+<!--                <el-button class="bt" v-on:click="getCart">查看</el-button>-->
+<!--                <el-button class="bt" v-on:click="getCart">编辑</el-button>-->
+<!--                <el-button class="bt" v-on:click="getCart">删除</el-button>-->
+<!--            </elel-container>-->
+
+            <el-main style="margin-top: 10px">
+
+                <el-table :data="tableData" border style="width: 100%"  :cell-style="{'text-align':'center'}" :header-cell-style="{'text-align':'center'}">
+                    <el-table-column prop="serial" label="序号" >
+                    </el-table-column>
+                    <el-table-column prop="areaname" label="区域名称" >
+                    </el-table-column>
+
+                    <el-table-column prop="areacity" label="区域城市" >
+                    </el-table-column>
+                    <el-table-column prop="address" label="地址" >
+                    </el-table-column>
+
+                    <el-table-column prop="newtime" label="创建时间"  >
+                    </el-table-column>
+                </el-table>
+<!--                <el-table :data="tableData" style="border-color: black;text-align:  ">-->
+<!--                    <el-table-column prop="sum" label="序号" >-->
+<!--                    </el-table-column>-->
+<!--                    <el-table-column prop="areaname" label="区域名称" >-->
+<!--                    </el-table-column>-->
+
+<!--                    <el-table-column prop="areacity" label="区域城市" >-->
+<!--                    </el-table-column>-->
+<!--                    <el-table-column prop="address" label="地址" >-->
+<!--                    </el-table-column>-->
+
+<!--                    <el-table-column prop="date" label="创建时间"  >-->
+<!--                    </el-table-column>-->
+
+
+<!--                </el-table>-->
+                <el-pagination style="text-align: right;margin-top: 10px" background layout="prev, pager, next" :total="countPage" :page-size="pagesize" :current-page="currentPage" @current-change="handleCurrentChange"></el-pagination>
+            </el-main>
+
+        </el-container>
+        </el-container>
+    </el-container>
+
+
+</div>
+</body>
+
+<style>
+    .bt {
+        background-color: rgb(212, 211, 211);
+        margin-left: 20px;
+        font-weight: bolder;
+        width: 120px;
+        height: auto ;
+    }
+
+</style>
+
+<script>
+    window.onload=function() {
+        var vue = new Vue({
+            el: "#app",
+            data: {
+
+                sid:0,
+
+                currentPage:1, //初始页
+                pagesize: 5, //    每页的数据
+                countPage: 1,
+                pageover: 5,
+                userList: [],
+                dialogVisible: false,
+                form2: {
+                    areaname: '',
+                    areacity: '',
+                    address: '',
+                    newtime: '',
+                    date1: '',
+                    date2: '',
+                    date3: '',
+                    date4: '',
+                },
+                input: "lzlz",
+                item: {
+                    date: '2016-05-02',
+                    name: '王小虎',
+                    address: '上海市普陀区金沙江路 1519 弄'
+                },
+                tableDataAll: [
+                    {serial: "Loading...", areaname: "Loading...", areacity: "Loading...", address: "Loading...", newtime: "Loading..."},
+                ],
+                tableData: [
+                    {serial: "Loading...", areaname: "Loading...", areacity: "Loading...", address: "Loading...", newtime: "Loading..."},
+
+                ],
+                ruleForm: {
+                    name: '',
+                    region: '',
+
+                    delivery: false,
+                    type: [],
+                    resource: '',
+                    desc: ''
+                },
+                dynamicValidateForm: {
+
+                    areaname: '',
+                    areacity: '',
+                    domains: [{
+                        value: '',
+                    }],
+                },
+                // rules: {
+                //     name: [
+                //         { required: true, message: '请输入活动名称', trigger: 'blur' },
+                //         { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
+                //     ],
+                //     region: [
+                //         { required: true, message: '请选择活动区域', trigger: 'change' }
+                //     ],
+                //     date1: [
+                //         { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
+                //     ],
+                //     date2: [
+                //         { type: 'date', required: true, message: '请选择时间', trigger: 'change' }
+                //     ],
+                //     type: [
+                //         { type: 'array', required: true, message: '请至少选择一个活动性质', trigger: 'change' }
+                //     ],
+                //     resource: [
+                //         { required: true, message: '请选择活动资源', trigger: 'change' }
+                //     ],
+                //     desc: [
+                //         { required: true, message: '请填写活动形式', trigger: 'blur' }
+                //     ]
+                // }
+
+            },
+            methods: {
+                getCart: function () {
+                    console.log(vue.tableData);
+                    alert(vue.tableData);
+                },
+                seek: function () {
+                    // alert(vue.form2.date1+vue.form2.date2);
+                    // console.log(typeof vue.form2.date1)
+
+                    axios({
+                        method: "GET",
+                        url: "/seek",
+                        params: {
+                            areaname: vue.form2.areaname,
+                            areacity: vue.form2.areacity,
+                            address: vue.form2.address,
+                            data1: vue.form2.date1,
+                            data2: vue.form2.date2,
+                            data3: vue.form2.date3,
+                            data4: vue.form2.date4,
+                        },
+                        // data: this.form2
+                    })
+                        .then(function (value) {
+                            vue.currentPage = 1;
+                            var seekData = value.data;
+                            vue.tableDataAll = seekData;
+                            // console.log(vue.tableDataAll.slice(0,vue.pageover));
+                            vue.tableData = vue.tableDataAll.slice(0,vue.pageover);
+
+                            vue.countPage = seekData.length;
+                            // var seekData = value.data;
+                            // vue.tableData = seekData;
+                            // console.log(vue.tableData[0])
+                            // vue.countPage = seekData.length
+                            // alert(seekData.length)
+
+                        })
+                        .catch(function (reason) {
+                            alert(reason+"aaaaaaaa");
+                        });
+                },
+                handleCurrentChange: function (val) {
+                    vue.currentPage = val;
+                    // alert(vue.currentPage);
+                    // alert(this.currentPage);
+                    // this.getDataList();
+
+
+                    var pagenext = (val-1)*vue.pagesize+5;
+                    // alert(pagenext)
+                    // alert(vue.tableDataAll.length)
+                    if (pagenext >= vue.tableDataAll.length){
+                        pagenext = vue.tableDataAll.length;
+                    }
+                    vue.tableData = vue.tableDataAll.slice((val-1)*vue.pagesize,pagenext);
+
+                },
+                getDataList: function () {
+                    axios({
+                        method: "GET",
+                        url: "/selectInfo",
+                        // params: {
+                        //     currentPage2: this.currentPage,
+                        //     pagesize2: this.pagesize
+                        // }
+                    })
+                        .then(function (value) {
+                            var listDataAll = value.data;
+                            vue.tableDataAll = listDataAll;
+                            console.log(vue.tableDataAll.slice(0,vue.pageover));
+                            vue.tableData = vue.tableDataAll.slice(0,vue.pageover);
+                            // vue.getDataCount();
+
+                            vue.countPage = listDataAll.length;
+                        //    Math.ceil(listDataAll.length/5);
+
+
+                        })
+                        .catch(function (reason) {
+                            alert(reason)
+                        });
+                },
+
+                // addInfo: function () {
+                //     axios({
+                //         method: "POST",
+                //         url: "/addInfo",
+                //         data: this.form2,
+                //     })
+                //         .then(function (value) {
+                //             alert("添加成功")
+                //             this.getDataList();
+                //
+                //         })
+                //         .catch(function (reason) {
+                //         });
+                // },
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+
+                            axios({
+                                method: "POST",
+                                url: "/addSubmitForm",
+                                params: {
+                                    areaname: this.dynamicValidateForm.areaname,
+                                    areacity: this.dynamicValidateForm.areacity,
+                                    // domains: this.dynamicValidateForm.domains
+                                },
+                                data: this.dynamicValidateForm.domains
+                            })
+                                .then(function (value) {
+                                    alert("添加成功")
+                                    vue.getDataList();
+
+                                })
+                                .catch(function (reason) {
+                                    alert(reason)
+                                });
+                            this.dialogVisible = false;
+
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                },
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                },
+                removeDomain(item) {
+                    var index = this.dynamicValidateForm.domains.indexOf(item)
+                    if (index !== -1) {
+                        this.dynamicValidateForm.domains.splice(index, 1)
+                    }
+                },
+                addDomain() {
+                    this.dynamicValidateForm.domains.push({
+                        value: '',
+                        key: Date.now()
+                    });
+
+                    // alert(this.dynamicValidateForm.domains.length)
+                    // this.sid = this.sid+1;
+                    // alert(document.getElementById(this.sid).id)
+                    // alert(this.sid)
+                    console.log(this.dynamicValidateForm.domains)
+                    // document.getElementById(this.sid).onmousedown=function () {
+                    //     alert("鼠标离开")
+                    //
+                    // }
+
+                    ;
+                },
+                check() {
+                    this.getDataList();
+                },
+                citymanage(){
+                    axios({
+                              method: "GET",
+                              url: "/cityinfo",
+                          })
+                    .then(function (value) {
+
+                    }).catch(function (reason) {
+                    });},
+            },
+            mounted: function () {
+                this.getDataList();
+            }
+            // console.log
+            // mounted:function(){
+            //     return {
+            //         Main
+            //     }
+            // }
+        });
+// function getCart() {
+//     console.log("llinnnn")
+// }
+    }
+</script>
+</html>
